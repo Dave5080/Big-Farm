@@ -1,5 +1,7 @@
-#include <stdio.h>
-#include <stdlib.h>
+#include "xerrori.h"
+
+#define QUI __LINE__,__FILE__
+
 int main(int argc, char *argv[])
 {
   // controlla numero argomenti
