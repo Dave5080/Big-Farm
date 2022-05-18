@@ -339,3 +339,55 @@ int xpthread_cond_broadcast(pthread_cond_t *cond, int linea, char *file) {
   }
   return e;
 }
+
+int xsocket(int domain, int type, int protocol, int linea, char* file){
+  int e = socket(domain, type, protocol);
+  if(e == 0){
+    xperror(e, "Errore socket");
+    fprintf(stderr,"== %d == Linea: %d, File: %s\n", getpid(), linea, file);
+    exit(1);
+  }
+  return e;
+}
+
+int xbind(int socket_desc, struct sockaddr* sockaddress, int address_size, int linea, char* file){
+  int e = bind(socket_desc,(struct sockaddr *)&sockaddress , address_size);
+  if( e < 0)
+	{
+		//print the error message
+		perror("bind failed. Error");
+		fprintf(stderr,"== %d == Linea: %d, File: %s\n", getpid(), linea, file);
+    exit(1);
+	}
+  return e;
+}
+
+int xlisten(int sockfd, int backlog, int linea, char* file){
+  int e = listen(sockfd, backlog);
+  if(e < 0){
+    xperror(e, "listen failure");
+    fprintf(stderr,"== %d == Linea: %d, File: %s\n", getpid(), linea, file);
+    exit(1);
+  }
+  return e;
+}
+
+int xaccept(int sockfd, struct sockaddr* addr, socklen_t *addrlen, int linea, char* file){
+  int e = accept(sockfd, addr, addrlen);
+  if(e < 0){
+    perror("accept failure");
+    fprintf(stderr,"== %d == Linea: %d, File: %s\n", getpid(), linea, file);
+    exit(1);
+  }
+  return e;
+}
+
+int xconnect(int sockfd, const struct sockaddr* addr, socklen_t addrlen, int linea, char* file){
+  int e = connect(sockfd, sockaddr, addrlen);
+  if(e < 0){
+    perror("connect failure");
+    fprintf(stderr,"== %d == Linea: %d, File: %s\n", getpid(), linea, file);
+    exit(1);
+  }
+  return e;
+}
