@@ -12,7 +12,7 @@ unsigned int nthread = 1;
 pthread_t* workers; 
 
 sem_t files_sem;
-char** files;
+struct Queue* files;
 
 
 void args_checker(unsigned int *file_counter, unsigned int *args_counter, int argc, char *argv[]){
@@ -95,12 +95,37 @@ int sock_init_listen(){
   return server_fd;
 }
 
-void * runworker(void* a){
-  FILE f;
-  xsem_wait(&files_sem, QUI);
-  //xfopen()
-  xsem_post(&files_sem, QUI);
-  return NULL;
+void * runworker(void* targs){
+  FILE* file;
+  char* filename;
+
+  long val;
+  long sum = 0;
+  int n;
+  int j;
+    
+  long buffer[64];
+  do{
+    xsem_wait(&files_sem, QUI);
+    filename = (char*) dequeue(files);
+    xsem_post(&files_sem, QUI);
+    if(filename == NULL) break;
+    file = xfopen(filename, "r", QUI);
+    sum = 0;
+    j=0;
+    while(!feof(file)) {
+      n = fread(buffer, sizeof(long), 64, file);
+      for(int i = 0; i < n; i++){
+        //printf("%d\t*\t%ld\t + \t%ld\t =\t",j,buffer[i],sum);
+        sum+= j*buffer[i];
+        j++;
+        //printf("%ld\n",sum);
+      }
+    }
+    printf(" %s: %ld\n", filename, sum);
+    fclose(file);
+  }while(filename!=NULL);
+  pthread_exit(NULL);
 }
 
 int main(int argc, char *argv[])
@@ -111,9 +136,9 @@ int main(int argc, char *argv[])
   
   args_checker(&file_counter, &args_counter, argc, argv);
 
-  files = (char**)calloc(sizeof(char*), file_counter);
+  files = newQueue(file_counter);
   for(int i = (2*args_counter+1); i < argc; i++)
-    files[i - (2*args_counter+1)] = argv[i];
+    enqueue(files, argv[i]);
 
   int server_fd = sock_init_listen();
 
@@ -130,6 +155,7 @@ int main(int argc, char *argv[])
   for(int t = 0; t < nthread; t++){
     pthread_join(workers[t], NULL);
   }
+
 	return 0;
 
 }
