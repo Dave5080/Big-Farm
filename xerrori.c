@@ -342,7 +342,7 @@ int xpthread_cond_broadcast(pthread_cond_t *cond, int linea, char *file) {
 
 int xsocket(int domain, int type, int protocol, int linea, char* file){
   int e = socket(domain, type, protocol);
-  if(e == 0){
+  if(e <= 0){
     xperror(e, "Errore socket");
     fprintf(stderr,"== %d == Linea: %d, File: %s\n", getpid(), linea, file);
     exit(1);
@@ -351,9 +351,9 @@ int xsocket(int domain, int type, int protocol, int linea, char* file){
 }
 
 int xbind(int socket_desc, struct sockaddr* sockaddress, int address_size, int linea, char* file){
-  int e = bind(socket_desc,(struct sockaddr *)&sockaddress , address_size);
+  int e = bind(socket_desc, sockaddress , address_size);
   if( e < 0)
-	{
+	{ 
 		//print the error message
 		perror("bind failed. Error");
 		fprintf(stderr,"== %d == Linea: %d, File: %s\n", getpid(), linea, file);
@@ -383,7 +383,7 @@ int xaccept(int sockfd, struct sockaddr* addr, socklen_t *addrlen, int linea, ch
 }
 
 int xconnect(int sockfd, const struct sockaddr* addr, socklen_t addrlen, int linea, char* file){
-  int e = connect(sockfd, sockaddr, addrlen);
+  int e = connect(sockfd, addr, addrlen);
   if(e < 0){
     perror("connect failure");
     fprintf(stderr,"== %d == Linea: %d, File: %s\n", getpid(), linea, file);

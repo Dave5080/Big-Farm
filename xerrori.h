@@ -74,6 +74,6 @@ int xpthread_cond_broadcast(pthread_cond_t *cond, int linea, char *file);
 // socket
 int xsocket(int domain, int type, int protocol, int linea, char* file);
 int xbind(int socket_desc, struct sockaddr* sockaddress, int serversize, int linea, char* file);
-int xlisten(int sockfd, int vacklog, int linea, char* file);
+int xlisten(int sockfd, int backlog, int linea, char* file);
 int xaccept(int sockfd, struct sockaddr* addr, socklen_t *addrlen, int linea, char* file);
 int xconnect(int sockfd, const struct sockaddr* addr, socklen_t addrlen, int linea, char* file);
