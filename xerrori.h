@@ -17,6 +17,7 @@
 #include <fcntl.h>           /* For O_* constants */
 #include <netinet/in.h>
 #include <sys/socket.h>
+#include <arpa/inet.h>
 
 
 // termina programma

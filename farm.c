@@ -1,6 +1,5 @@
 #include "xerrori.h"
-#include <sys/types.h>
-#include <sys/socket.h>
+#include "simple_queue.h"
 
 #define QUI __LINE__,__FILE__
 
@@ -9,6 +8,11 @@
 unsigned int qlen = 8;
 unsigned int delay = 0;
 unsigned int nthread = 1;
+
+pthread_t* workers; 
+
+sem_t files_sem;
+char** files;
 
 
 void args_checker(unsigned int *file_counter, unsigned int *args_counter, int argc, char *argv[]){
@@ -91,6 +95,14 @@ int sock_init_listen(){
   return server_fd;
 }
 
+void * runworker(void* a){
+  FILE f;
+  xsem_wait(&files_sem, QUI);
+  //xfopen()
+  xsem_post(&files_sem, QUI);
+  return NULL;
+}
+
 int main(int argc, char *argv[])
 {
   // controlla numero argomenti
@@ -99,13 +111,25 @@ int main(int argc, char *argv[])
   
   args_checker(&file_counter, &args_counter, argc, argv);
 
-  char** files = (char**)calloc(sizeof(char*), file_counter);
+  files = (char**)calloc(sizeof(char*), file_counter);
   for(int i = (2*args_counter+1); i < argc; i++)
     files[i - (2*args_counter+1)] = argv[i];
 
   int server_fd = sock_init_listen();
 
+  workers = (pthread_t*)calloc(sizeof(pthread_t), nthread);
+
+  xsem_init(&files_sem, 0, 1, QUI);
+
+  for(int t = 0; t < nthread; t++){
+    xpthread_create(&(workers[t]), NULL, runworker, NULL, QUI);
+  }
 	
+
+
+  for(int t = 0; t < nthread; t++){
+    pthread_join(workers[t], NULL);
+  }
 	return 0;
 
 }
