@@ -15,11 +15,18 @@ struct Queue* newQueue(int capacity)
 	q->head = NULL;
 	q->tail = NULL;
 
+	xsem_init(&(q->sem_full), 0, 0, QUI);
+	xsem_init(&(q->sem_mutex), 0, 1, QUI);
+	xsem_init(&(q->sem_empty), 0, capacity, QUI);
+
 	return q;
 }
 
 int enqueue(struct Queue *q, void *value)
-{
+{	
+	xsem_wait(&(q->sem_empty), QUI);
+	xsem_wait(&(q->sem_mutex), QUI);
+	
 	if ((q->size + 1) > q->max_size) {
 		return q->size;
 	}
@@ -38,6 +45,9 @@ int enqueue(struct Queue *q, void *value)
 		q->tail = node;
 		q->size = 1;
 
+		xsem_post(&(q->sem_mutex), QUI);
+		xsem_post(&(q->sem_full), QUI);
+
 		return q->size;
 	}
 
@@ -45,13 +55,22 @@ int enqueue(struct Queue *q, void *value)
 	q->tail->next = node;
 	q->tail = node;
 	q->size += 1;
-
+	int newsize = q->size;
+	
+	xsem_post(&(q->sem_mutex), QUI);
+	xsem_post(&(q->sem_full), QUI);
 	return q->size;
 }
 
 void* dequeue(struct Queue *q)
-{
+{	
+	xsem_wait(&(q->sem_full), QUI);
+	xsem_wait(&(q->sem_mutex), QUI);
 	if (q->size == 0) {
+
+		xsem_post(&(q->sem_mutex), QUI);
+		xsem_post(&(q->sem_empty), QUI);
+
 		return NULL;
 	}
 
@@ -65,6 +84,8 @@ void* dequeue(struct Queue *q)
 
 	free(tmp);
 
+	xsem_post(&(q->sem_mutex), QUI);
+	xsem_post(&(q->sem_empty), QUI);
 	return value;
 }
 

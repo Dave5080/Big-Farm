@@ -1,3 +1,8 @@
+#ifndef XERRORI_H
+#define XERRORI_H
+
+#define QUI __LINE__,__FILE__
+
 #define _GNU_SOURCE   // permette di usare estensioni GNU
 #include <stdio.h>    // permette di usare scanf printf etc ...
 #include <stdlib.h>   // conversioni stringa exit() etc ...
@@ -78,3 +83,5 @@ int xbind(int socket_desc, struct sockaddr* sockaddress, int serversize, int lin
 int xlisten(int sockfd, int backlog, int linea, char* file);
 int xaccept(int sockfd, struct sockaddr* addr, socklen_t *addrlen, int linea, char* file);
 int xconnect(int sockfd, const struct sockaddr* addr, socklen_t addrlen, int linea, char* file);
+
+#endif

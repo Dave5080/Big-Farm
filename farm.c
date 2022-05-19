@@ -1,7 +1,7 @@
 #include "xerrori.h"
 #include "simple_queue.h"
 
-#define QUI __LINE__,__FILE__
+
 
 #define PORT 3490
 
@@ -11,7 +11,6 @@ unsigned int nthread = 1;
 
 pthread_t* workers; 
 
-sem_t files_sem;
 struct Queue* files;
 
 
@@ -106,53 +105,54 @@ void * runworker(void* targs){
     
   long buffer[64];
   do{
-    xsem_wait(&files_sem, QUI);
     filename = (char*) dequeue(files);
-    xsem_post(&files_sem, QUI);
-    if(filename == NULL) break;
+    
+    if(!strcmp(filename, "")) break;
     file = xfopen(filename, "r", QUI);
     sum = 0;
     j=0;
     while(!feof(file)) {
       n = fread(buffer, sizeof(long), 64, file);
       for(int i = 0; i < n; i++){
-        //printf("%d\t*\t%ld\t + \t%ld\t =\t",j,buffer[i],sum);
         sum+= j*buffer[i];
         j++;
-        //printf("%ld\n",sum);
       }
     }
     printf(" %s: %ld\n", filename, sum);
     fclose(file);
-  }while(filename!=NULL);
+
+    sleep(delay);
+
+  }while(strcmp(filename, ""));
   pthread_exit(NULL);
 }
 
-int main(int argc, char *argv[])
-{
-  // controlla numero argomenti
+int main(int argc, char *argv[]){
   unsigned int file_counter = 0;
   unsigned int args_counter = 0;
   
   args_checker(&file_counter, &args_counter, argc, argv);
 
-  files = newQueue(file_counter);
-  for(int i = (2*args_counter+1); i < argc; i++)
-    enqueue(files, argv[i]);
 
   int server_fd = sock_init_listen();
 
   workers = (pthread_t*)calloc(sizeof(pthread_t), nthread);
 
-  xsem_init(&files_sem, 0, 1, QUI);
+  files = newQueue(qlen);
 
   for(int t = 0; t < nthread; t++){
     xpthread_create(&(workers[t]), NULL, runworker, NULL, QUI);
   }
 	
+  for(int i = (2*args_counter+1); i < argc; i++){
 
+    enqueue(files, argv[i]);
+  }
+
+  for(int t = 0; t <= nthread; t++) enqueue(files, "");
 
   for(int t = 0; t < nthread; t++){
+    
     pthread_join(workers[t], NULL);
   }
 
