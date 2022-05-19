@@ -128,33 +128,33 @@ void * runworker(void* targs){
 }
 
 int main(int argc, char *argv[]){
+
+  // Argument checking
   unsigned int file_counter = 0;
   unsigned int args_counter = 0;
-  
   args_checker(&file_counter, &args_counter, argc, argv);
 
 
-  int server_fd = sock_init_listen();
+  //int server_fd = sock_init_listen();
 
+  // Thread initialization
   workers = (pthread_t*)calloc(sizeof(pthread_t), nthread);
-
   files = newQueue(qlen);
-
-  for(int t = 0; t < nthread; t++){
+  for(int t = 0; t < nthread; t++)
     xpthread_create(&(workers[t]), NULL, runworker, NULL, QUI);
-  }
 	
-  for(int i = (2*args_counter+1); i < argc; i++){
-
+  // Producers distributes name files
+  for(int i = (2*args_counter+1); i < argc; i++)
     enqueue(files, argv[i]);
-  }
 
+  // Close threads
   for(int t = 0; t <= nthread; t++) enqueue(files, "");
-
-  for(int t = 0; t < nthread; t++){
-    
+  for(int t = 0; t < nthread; t++)
     pthread_join(workers[t], NULL);
-  }
+
+  // Free memory
+  //freeQueue(files);
+  free(workers);
 
 	return 0;
 
