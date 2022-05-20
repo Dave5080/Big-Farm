@@ -13,6 +13,10 @@ pthread_t* workers;
 
 struct Queue* files;
 
+int client_fd = 0, sock;
+sem_t sem_client;
+
+
 
 void args_checker(unsigned int *file_counter, unsigned int *args_counter, int argc, char *argv[]){
     if(argc<2) {
@@ -74,27 +78,43 @@ void args_checker(unsigned int *file_counter, unsigned int *args_counter, int ar
   }
 }
 
-int sock_init_listen(){
-  int server_fd;
+int sock_init_connect(){
   struct sockaddr_in address;
 
-  //memset(&address, 0, sizeof(address));
-
-  server_fd = xsocket(AF_INET, SOCK_STREAM, 0, QUI);
+  sock = xsocket(AF_INET, SOCK_STREAM, 0, QUI);
 
   address.sin_family = AF_INET;
 	inet_pton(AF_INET, "127.0.0.1", &(address.sin_addr));
 	address.sin_port = htons( 8888 );
 
-  
-  xbind(server_fd, (struct sockaddr *)&address, sizeof address, QUI);
+  printf("[Farm] Connecting...\n");
+  //while((client_fd = connect(sock, (struct sockaddr*)&address, sizeof(address))) <= 0)
+    ;
+  printf("[Farm] Connected\n");
+  //xbind(server_fd, (struct sockaddr *)&address, sizeof address, QUI);
 
-  xlisten(server_fd, 1, QUI);
+  //xlisten(server_fd, 1, QUI);
 
-  return server_fd;
+  xsem_init(&sem_client, 0, 1, QUI);
+
+  return client_fd;
 }
 
-void * runworker(void* targs){
+int sock_send_couple(char* filename, long sum, int pid, int tid){
+  xsem_wait(&sem_client, QUI);
+  //send(sock, filename, strlen(filename), 0);
+  printf("Sent: %s \t\t\t", filename);
+  //send(sock, &sum, sizeof(sum), 0);
+  printf("%ld \t\t\t", sum);
+  //send(sock, &pid, sizeof(pid), 0);
+  printf(" %d/", pid);
+  //send(sock, &tid, sizeof(tid), 0);
+  printf("%d\n", tid);
+  xsem_post(&sem_client, QUI);
+  return 0;
+}
+
+void * runworker(void* tid){
   FILE* file;
   char* filename;
 
@@ -107,7 +127,7 @@ void * runworker(void* targs){
   do{
     filename = (char*) dequeue(files);
     
-    if(!strcmp(filename, ".")) break;
+    if(!strcmp(filename, "")) break;
     file = xfopen(filename, "r", QUI);
     sum = 0;
     j=0;
@@ -118,12 +138,9 @@ void * runworker(void* targs){
         j++;
       }
     }
-    printf(" %s: %ld\n", filename, sum);
+    sock_send_couple(filename, sum, getpid(), *(int*)tid);
     fclose(file);
-
-    sleep(delay);
-
-  }while(strcmp(filename, "."));
+  }while(strcmp(filename, ""));
   pthread_exit(NULL);
 }
 
@@ -135,21 +152,22 @@ int main(int argc, char *argv[]){
   args_checker(&file_counter, &args_counter, argc, argv);
 
 
-  //int server_fd = sock_init_listen();
+  sock_init_connect();
 
   // Thread initialization
   workers = (pthread_t*)calloc(sizeof(pthread_t), nthread);
   files = newQueue(qlen);
   for(int t = 0; t < nthread; t++)
-    xpthread_create(&(workers[t]), NULL, runworker, NULL, QUI);
+    xpthread_create(&(workers[t]), NULL, runworker, &(workers[t]), QUI);
 	
   // Producers distributes name files
   for(int i = (2*args_counter+1); i < argc; i++){
     enqueue(files, argv[i]);
+    sleep(delay/1000);
   }
 
   // Close threads
-  for(int t = 0; t <= nthread; t++) enqueue(files, ".");
+  for(int t = 0; t <= nthread; t++) enqueue(files, "");
   for(int t = 0; t < nthread; t++)
     pthread_join(workers[t], NULL);
   // Free memory
