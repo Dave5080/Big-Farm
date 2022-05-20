@@ -94,20 +94,13 @@ void freeQueue(struct Queue *q)
 	if (q == NULL) {
 		return;
 	}
-
 	while (q->head != NULL) {
 		struct Node *tmp = q->head;
 		q->head = q->head->next;
 		if (tmp->value != NULL) {
-			free(tmp->value);
+			tmp->value = NULL;
 		}
-
 		free(tmp);
 	}
-
-	if (q->tail != NULL) {
-		free(q->tail);
-	}
-
 	free (q);
 }

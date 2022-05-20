@@ -107,7 +107,7 @@ void * runworker(void* targs){
   do{
     filename = (char*) dequeue(files);
     
-    if(!strcmp(filename, "")) break;
+    if(!strcmp(filename, ".")) break;
     file = xfopen(filename, "r", QUI);
     sum = 0;
     j=0;
@@ -123,7 +123,7 @@ void * runworker(void* targs){
 
     sleep(delay);
 
-  }while(strcmp(filename, ""));
+  }while(strcmp(filename, "."));
   pthread_exit(NULL);
 }
 
@@ -144,16 +144,16 @@ int main(int argc, char *argv[]){
     xpthread_create(&(workers[t]), NULL, runworker, NULL, QUI);
 	
   // Producers distributes name files
-  for(int i = (2*args_counter+1); i < argc; i++)
+  for(int i = (2*args_counter+1); i < argc; i++){
     enqueue(files, argv[i]);
+  }
 
   // Close threads
-  for(int t = 0; t <= nthread; t++) enqueue(files, "");
+  for(int t = 0; t <= nthread; t++) enqueue(files, ".");
   for(int t = 0; t < nthread; t++)
     pthread_join(workers[t], NULL);
-
   // Free memory
-  //freeQueue(files);
+  freeQueue(files);
   free(workers);
 
 	return 0;
