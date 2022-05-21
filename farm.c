@@ -82,17 +82,17 @@ int sock_init_connect(){
   struct sockaddr_in address;
 
   sock = xsocket(AF_INET, SOCK_STREAM, 0, QUI);
-
+  //setsockopt(sock,SOL_SOCKET,SO_REUSEADDR,true,sizeof(int));
   address.sin_family = AF_INET;
 	inet_pton(AF_INET, "127.0.0.1", &(address.sin_addr));
 	address.sin_port = htons( 8888 );
 
   printf("[Farm] Connecting...\n");
-  client_fd = connect(sock, (struct sockaddr*)&address, sizeof(address))
-    ;
-  printf("[Farm] Connected\n");
-  //xbind(server_fd, (struct sockaddr *)&address, sizeof address, QUI);
+  client_fd = connect(sock, (struct sockaddr*)&address, sizeof(address));
+  send(sock, "worker\n", sizeof("worker"), 0);
+  printf("[Farm] Connected!\n");
 
+  //xbind(server_fd, (struct sockaddr *)&address, sizeof address, QUI);
   //xlisten(server_fd, 1, QUI);
 
   xsem_init(&sem_client, 0, 1, QUI);
@@ -104,16 +104,12 @@ int sock_send_couple(char* filename, long sum, int pid, int tid){
 
   xsem_wait(&sem_client, QUI);
 
-  char ssum[15] = "", spid[15] = "", stid[15] = "";
+  char ssum[16] = "", spid[16] = "", stid[16] = "";
 
 
   sprintf(ssum, "%ld\n", sum);
   sprintf(spid, "%d\n", pid);
   sprintf(stid, "%d\n", tid);
-
-  printf("Sending sum: %ld -> %s", sum, ssum);
-  printf("Sending pid: %d -> %s", pid, spid);
-  printf("Sending tid: %d -> %s", tid, stid);
 
   send(sock, filename, strlen(filename), 0);
   send(sock, "\n", strlen("\n"), 0);
@@ -191,6 +187,9 @@ int main(int argc, char *argv[]){
   for(int t = 0; t < nthread; t++)
     pthread_join(workers[t], NULL);
   // Free memory
+  send(sock, "\r\n", sizeof("\r\n"), 0);
+  close(client_fd);
+  close(sock);
   freeQueue(files);
   free(workers);
 
