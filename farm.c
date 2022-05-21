@@ -88,7 +88,7 @@ int sock_init_connect(){
 	address.sin_port = htons( 8888 );
 
   printf("[Farm] Connecting...\n");
-  //while((client_fd = connect(sock, (struct sockaddr*)&address, sizeof(address))) <= 0)
+  client_fd = connect(sock, (struct sockaddr*)&address, sizeof(address))
     ;
   printf("[Farm] Connected\n");
   //xbind(server_fd, (struct sockaddr *)&address, sizeof address, QUI);
@@ -101,15 +101,35 @@ int sock_init_connect(){
 }
 
 int sock_send_couple(char* filename, long sum, int pid, int tid){
+
   xsem_wait(&sem_client, QUI);
-  //send(sock, filename, strlen(filename), 0);
+
+  char ssum[15] = "", spid[15] = "", stid[15] = "";
+
+
+  sprintf(ssum, "%ld\n", sum);
+  sprintf(spid, "%d\n", pid);
+  sprintf(stid, "%d\n", tid);
+
+  printf("Sending sum: %ld -> %s", sum, ssum);
+  printf("Sending pid: %d -> %s", pid, spid);
+  printf("Sending tid: %d -> %s", tid, stid);
+
+  send(sock, filename, strlen(filename), 0);
+  send(sock, "\n", strlen("\n"), 0);
   printf("Sent: %s \t\t\t", filename);
-  //send(sock, &sum, sizeof(sum), 0);
+
+  send(sock, ssum, sizeof(ssum), 0);
   printf("%ld \t\t\t", sum);
-  //send(sock, &pid, sizeof(pid), 0);
+
+
+  send(sock, spid, sizeof(spid), 0);
   printf(" %d/", pid);
-  //send(sock, &tid, sizeof(tid), 0);
+
+
+  send(sock, stid, sizeof(stid), 0);
   printf("%d\n", tid);
+
   xsem_post(&sem_client, QUI);
   return 0;
 }
