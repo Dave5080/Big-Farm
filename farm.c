@@ -119,15 +119,15 @@ int sock_send_couple(char* filename, long sum, int pid, int tid){
   printf("Sent: %s \t\t", filename);
 
   send(sock, ssum, sizeof(ssum), 0);
-  printf("%ld \t\t", sum);
+  printf("%ld\n", sum);
 
 
   send(sock, spid, sizeof(spid), 0);
-  printf(" %d\n", pid);
+  //printf(" %d\n", pid);
 
 
   send(sock, stid, sizeof(stid), 0);
-  printf("%d\n", tid);
+  //printf("%d\n", tid);
 
   xsem_post(&sem_client, QUI);
   return 0;
