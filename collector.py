@@ -35,9 +35,7 @@ def on_new_worker_client(clientsocket,addr):
         while sep not in tid:
             data = clientsocket.recv(1)
             tid += data.decode("utf8")
-        coll_sem.acquire()cdd
-        if "tests" not in fixstr(filename):
-            print("PROBLEMAAAAA")
+        coll_sem.acquire()
         coll[fixstr(filename)] = int(fixstr(sum))
         print("{} {}/{} >> {} {}".format(addr,fixstr(pid),fixstr(tid),fixstr(filename),coll[fixstr(filename)]))
         coll_sem.release()
