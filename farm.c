@@ -16,7 +16,12 @@ struct Queue* files;
 int client_fd = 0, sock;
 sem_t sem_client;
 
+static volatile int interrupted = 0;
 
+void intHandler(int dummy){
+  printf("Interrupting...\n");
+  interrupted = 1;
+}
 
 void args_checker(unsigned int *file_counter, unsigned int *args_counter, int argc, char *argv[]){
     if(argc<2) {
@@ -111,10 +116,10 @@ int sock_send_couple(char* filename, long sum, int pid, int tid){
   sprintf(sfilename, "%s\n", filename);
 
   send(sock, sfilename, strlen(sfilename), 0);
-  printf("Sent: %s \t\t\t", filename);
+  printf("Sent: %s \t\t", filename);
 
   send(sock, ssum, sizeof(ssum), 0);
-  printf("%ld \t\t\t", sum);
+  printf("%ld \t\t", sum);
 
 
   send(sock, spid, sizeof(spid), 0);
@@ -160,6 +165,8 @@ void * runworker(void* tid){
 
 int main(int argc, char *argv[]){
 
+  signal(SIGINT, intHandler);
+
   // Argument checking
   unsigned int file_counter = 0;
   unsigned int args_counter = 0;
@@ -176,8 +183,10 @@ int main(int argc, char *argv[]){
 	
   // Producers distributes name files
   for(int i = (2*args_counter+1); i < argc; i++){
-    enqueue(files, argv[i]);
-    sleep(delay/1000);
+    if(!interrupted){
+      enqueue(files, argv[i]);
+      sleep(delay/1000);
+    }
   }
 
   // Close threads
@@ -185,6 +194,7 @@ int main(int argc, char *argv[]){
   for(int t = 0; t < nthread; t++)
     pthread_join(workers[t], NULL);
   // Free memory
+  printf("done\n");
   send(sock, "\r\n", sizeof("\r\n"), 0);
   close(client_fd);
   close(sock);
