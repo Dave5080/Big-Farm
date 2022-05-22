@@ -105,7 +105,10 @@ int sock_send_couple(char* filename, long sum, int pid, int tid){
   xsem_wait(&sem_client, QUI);
 
   char ssum[16] = "", spid[16] = "", stid[16] = "";
+<<<<<<< HEAD
   char sfilename[256];
+=======
+>>>>>>> d43d0d915c00846289ecad4ed6b313399f073c20
 
 
   sprintf(ssum, "%ld\n", sum);
@@ -113,7 +116,12 @@ int sock_send_couple(char* filename, long sum, int pid, int tid){
   sprintf(stid, "%d\n", tid);
   sprintf(sfilename, "%s\n", filename);
 
+<<<<<<< HEAD
   send(sock, sfilename, strlen(sfilename), 0);
+=======
+  send(sock, filename, strlen(filename), 0);
+  send(sock, "\n", strlen("\n"), 0);
+>>>>>>> d43d0d915c00846289ecad4ed6b313399f073c20
   printf("Sent: %s \t\t\t", filename);
 
   send(sock, ssum, sizeof(ssum), 0);
