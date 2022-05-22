@@ -82,18 +82,15 @@ int sock_init_connect(){
   struct sockaddr_in address;
 
   sock = xsocket(AF_INET, SOCK_STREAM, 0, QUI);
-  //setsockopt(sock,SOL_SOCKET,SO_REUSEADDR,true,sizeof(int));
   address.sin_family = AF_INET;
 	inet_pton(AF_INET, "127.0.0.1", &(address.sin_addr));
 	address.sin_port = htons( 8888 );
 
   printf("[Farm] Connecting...\n");
   client_fd = connect(sock, (struct sockaddr*)&address, sizeof(address));
-  send(sock, "worker\n", sizeof("worker"), 0);
+  send(sock, "worker\n", sizeof("worker\n"), 0);
   printf("[Farm] Connected!\n");
 
-  //xbind(server_fd, (struct sockaddr *)&address, sizeof address, QUI);
-  //xlisten(server_fd, 1, QUI);
 
   xsem_init(&sem_client, 0, 1, QUI);
 
@@ -105,10 +102,7 @@ int sock_send_couple(char* filename, long sum, int pid, int tid){
   xsem_wait(&sem_client, QUI);
 
   char ssum[16] = "", spid[16] = "", stid[16] = "";
-<<<<<<< HEAD
   char sfilename[256];
-=======
->>>>>>> d43d0d915c00846289ecad4ed6b313399f073c20
 
 
   sprintf(ssum, "%ld\n", sum);

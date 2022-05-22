@@ -39,7 +39,7 @@ def on_new_worker_client(clientsocket,addr):
         coll[fixstr(filename)] = int(fixstr(sum))
         print("{} {}/{} >> {} {}".format(addr,fixstr(pid),fixstr(tid),fixstr(filename),coll[fixstr(filename)]))
         coll_sem.release()
-    print("Connecion from {} closed.".format(addr))
+    #print("Connecion from {} closed.".format(addr))
 
 def on_new_logging_client(clientsocket,addr):
     mode = ''
@@ -47,9 +47,12 @@ def on_new_logging_client(clientsocket,addr):
     while sep not in mode:
         data = clientsocket.recv(1)
         mode += data.decode("utf-8")
+
     coll_sem.acquire()
     mydic = sorted(coll.items(), key=lambda x: x[1])
+
     if "all" in mode:
+        #print("mode: all");
         if len(coll) >= 1:
             for (filename, sum) in mydic:
                 clientsocket.send("{}\n{}\n".format(filename,sum).encode())
@@ -59,6 +62,7 @@ def on_new_logging_client(clientsocket,addr):
             print("Sending Nessun file")
     else:
         mysum = int(fixstr(mode))
+        #print("mode: {}", mysum)
         count = 0
         for (filename, sum) in mydic:
             if sum == mysum:
@@ -66,8 +70,9 @@ def on_new_logging_client(clientsocket,addr):
                 clientsocket.send("{}\n{}\n".format(filename,sum).encode())
                 print("Sending special ({}:{}) to {}".format(filename, sum,addr))
         if count < 1:
-            clientsocket.send("{}\n{}\n".format(filename,sum).encode())
-            print("Sending ({}:{} to {})".format(filename, sum, addr))
+            clientsocket.send("Nessun file\n".encode())
+            print("Sending Nessun file")
+    clientsocket.send("\r".encode())
     coll_sem.release()
 
 s = socket.socket()
@@ -86,11 +91,11 @@ while True:
         buf += data.decode("utf8")
      
     if "worker" in buf:
-        print('Got worker connection from {}'.format(addr))
+        #print('Got worker connection from {}'.format(addr))
         _thread.start_new_thread(on_new_worker_client,(c,addr))
     else: 
         if "client" in buf:
-            print('Got client connection from {}'.format(addr))
+            #print('Got client connection from {}'.format(addr))
             _thread.start_new_thread(on_new_logging_client,(c,addr))
 
 s.close()
