@@ -20,8 +20,11 @@ def somma(args):
       while True:
         data = f.read(8)
         if len(data)==0: break
+ 
         v = struct.unpack("<q",data)[0]
+        #print("{}\t*\t{}\t=\t".format(i,v,somma))
         somma += i*v
+        #print("{}\n".format(somma))
         i += 1
       risultati.append((somma, nfile))
       if somma>= 2**63 or somma < - (2**63):

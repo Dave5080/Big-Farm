@@ -39,7 +39,7 @@ def on_new_worker_client(clientsocket,addr):
             tid += data.decode("utf8")
         coll_sem.acquire()
         coll[fixstr(filename)] = int(fixstr(sum))
-        print("{} {}/{} >> {} {}".format(addr,fixstr(pid),fixstr(tid),fixstr(filename),coll[fixstr(filename)]))
+        #print("{} {}/{} >> {} {}".format(addr,fixstr(pid),fixstr(tid),fixstr(filename),coll[fixstr(filename)]))
         coll_sem.release()
     clientsocket.close()
 
@@ -58,10 +58,10 @@ def on_new_logging_client(clientsocket,addr):
         if len(coll) >= 1:
             for (filename, sum) in mydic:
                 clientsocket.send("{}\n{}\n".format(filename,sum).encode())
-                print("Sending ({}:{} to {})".format(filename, sum, addr))
+                #print("Sending ({}:{} to {})".format(filename, sum, addr))
         else:
             clientsocket.send("Nessun file\n".encode())
-            print("Sending Nessun file")
+            #print("Sending Nessun file")
     else:
         mysum = int(fixstr(mode))
         #print("mode: {}", mysum)
@@ -70,10 +70,10 @@ def on_new_logging_client(clientsocket,addr):
             if sum == mysum:
                 count += 1
                 clientsocket.send("{}\n{}\n".format(filename,sum).encode())
-                print("Sending special ({}:{}) to {}".format(filename, sum,addr))
+                #print("Sending special ({}:{}) to {}".format(filename, sum,addr))
         if count < 1:
             clientsocket.send("Nessun file\n".encode())
-            print("Sending Nessun file")
+            #print("Sending Nessun file")
     clientsocket.send("\r".encode())
     coll_sem.release()
     clientsocket.close()
@@ -81,8 +81,8 @@ def on_new_logging_client(clientsocket,addr):
 s = socket.socket()
 s.bind((HOST, PORT))
 
-print("Server started!")
-print("Waiting for clients...")
+#print("Server started!")
+#print("Waiting for clients...")
 
 s.listen(8)
 

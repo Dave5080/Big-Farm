@@ -42,11 +42,20 @@ void free_entry_list(struct entry_list* list){
   free(list);
 }
 
+void print_entry_list_wsum(struct entry_list* list, long sumreq){
+  if(list == NULL){
+    return;
+  }
+  printf("%ld %s\t(risposta alla richiesta somma %ld)\n", list->value->sum, list->value->filename, sumreq);
+
+  print_entry_list_wsum(list->next, sumreq);
+}
+
 void print_entry_list(struct entry_list* list){
   if(list == NULL){
     return;
   }
-  printf("%s >> %ld\n", list->value->filename, list->value->sum);
+  printf("%ld %s\n", list->value->sum, list->value->filename);
 
   print_entry_list(list->next);
 }
@@ -181,9 +190,9 @@ int main(int argc, char *argv[])
       send(sock, slong, sizeof(slong), 0);
       list = read_entries();
       if(list == NULL)
-        printf("Nessun file con somma: %ld\n", sums[i]);
+        printf("Nessun file \t(risposta alla richiesta di somma %ld)\n", sums[i]);
       else{
-        print_entry_list(list);
+        print_entry_list_wsum(list, sums[i]);
         free_entry_list(list);
       } 
       close(sock);
@@ -191,7 +200,6 @@ int main(int argc, char *argv[])
   }
   if(!askall)
     free(sums);
-  //free_entry_list(list);
   close(client_fd);
   
   

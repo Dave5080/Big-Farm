@@ -19,7 +19,7 @@ sem_t sem_client;
 static volatile int interrupted = 0;
 
 void intHandler(int dummy){
-  printf("Interrupting...\n");
+  //printf("Interrupting...\n");
   interrupted = 1;
 }
 
@@ -91,10 +91,10 @@ int sock_init_connect(){
 	inet_pton(AF_INET, "127.0.0.1", &(address.sin_addr));
 	address.sin_port = htons( 8888 );
 
-  printf("[Farm] Connecting...\n");
-  client_fd = connect(sock, (struct sockaddr*)&address, sizeof(address));
+  //printf("[Farm] Connecting...\n");
+  client_fd = xconnect(sock, (struct sockaddr*)&address, sizeof(address),QUI);
   send(sock, "worker\n", sizeof("worker\n"), 0);
-  printf("[Farm] Connected!\n");
+  //printf("[Farm] Connected!\n");
 
 
   xsem_init(&sem_client, 0, 1, QUI);
@@ -116,10 +116,10 @@ int sock_send_couple(char* filename, long sum, int pid, int tid){
   sprintf(sfilename, "%s\n", filename);
 
   send(sock, sfilename, strlen(sfilename), 0);
-  printf("Sent: %s \t\t", filename);
+  //printf("Sent: %s \t\t", filename);
 
   send(sock, ssum, sizeof(ssum), 0);
-  printf("%ld\n", sum);
+  //printf("%ld\n", sum);
 
 
   send(sock, spid, sizeof(spid), 0);
@@ -159,7 +159,6 @@ void * runworker(void* tid){
     }
     sock_send_couple(filename, sum, getpid(), *(int*)tid);
     fclose(file);
-    //free(filename);
   }while(true);
   pthread_exit(NULL);
 }
@@ -194,9 +193,9 @@ int main(int argc, char *argv[]){
   for(int t = 0; t <= nthread; t++) enqueue(files, "");
   for(int t = 0; t < nthread; t++)
     pthread_join(workers[t], NULL);
+  send(sock, "\r\n", sizeof("\r\n"), 0);
 
   // Free memory
-  send(sock, "\r\n", sizeof("\r\n"), 0);
   close(client_fd);
   close(sock);
   freeQueue(files);
