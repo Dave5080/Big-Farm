@@ -25,7 +25,6 @@ struct entry_list* insert_entry(struct entry_list* list, char* filename, long su
     list->value->sum = sum;
     return list;
   }
-
   struct entry_list* tmp = list;
   while(tmp->next != NULL)
     tmp = tmp->next;
@@ -134,7 +133,7 @@ struct entry_list* read_entries(){
     }
     tmp[i-old_i] = '\x0';
     if(pendulum == 0){
-      filename = (char*)calloc(sizeof(char),i-old_i);
+      filename = (char*)calloc(sizeof(char),(i-old_i)+1);
       strcpy(filename, tmp);
     } else{
       sum = atol(tmp);
@@ -190,7 +189,9 @@ int main(int argc, char *argv[])
       close(sock);
     }
   }
-
+  if(!askall)
+    free(sums);
+  //free_entry_list(list);
   close(client_fd);
   
   

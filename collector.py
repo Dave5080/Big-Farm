@@ -11,6 +11,8 @@ HOST = "127.0.0.1"
 PORT = 8888
 sep = "\n"
 
+
+
 def fixstr(oldstr):
     return oldstr.replace("\n","").replace("\x00","");
 
@@ -39,7 +41,7 @@ def on_new_worker_client(clientsocket,addr):
         coll[fixstr(filename)] = int(fixstr(sum))
         print("{} {}/{} >> {} {}".format(addr,fixstr(pid),fixstr(tid),fixstr(filename),coll[fixstr(filename)]))
         coll_sem.release()
-    #print("Connecion from {} closed.".format(addr))
+    clientsocket.close()
 
 def on_new_logging_client(clientsocket,addr):
     mode = ''
@@ -74,6 +76,7 @@ def on_new_logging_client(clientsocket,addr):
             print("Sending Nessun file")
     clientsocket.send("\r".encode())
     coll_sem.release()
+    clientsocket.close()
 
 s = socket.socket()
 s.bind((HOST, PORT))
@@ -97,5 +100,3 @@ while True:
         if "client" in buf:
             #print('Got client connection from {}'.format(addr))
             _thread.start_new_thread(on_new_logging_client,(c,addr))
-
-s.close()

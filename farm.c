@@ -159,7 +159,8 @@ void * runworker(void* tid){
     }
     sock_send_couple(filename, sum, getpid(), *(int*)tid);
     fclose(file);
-  }while(strcmp(filename, ""));
+    //free(filename);
+  }while(true);
   pthread_exit(NULL);
 }
 
@@ -193,8 +194,8 @@ int main(int argc, char *argv[]){
   for(int t = 0; t <= nthread; t++) enqueue(files, "");
   for(int t = 0; t < nthread; t++)
     pthread_join(workers[t], NULL);
+
   // Free memory
-  printf("done\n");
   send(sock, "\r\n", sizeof("\r\n"), 0);
   close(client_fd);
   close(sock);
